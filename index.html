@@ -34,7 +34,7 @@
       width:100%;
       height:100%;
       border:none;
-      display:none; /* hidden until loaded */
+      display:none;
     }
   </style>
 </head>
@@ -46,12 +46,10 @@
   <iframe id="targetFrame" src=""></iframe>
 
   <script>
-    // Generate random string
+    // 随机参数防缓存
     function randomString(len = 8) {
       return Math.random().toString(36).substr(2, len);
     }
-
-    // Ensure random param ?r= exists
     (function ensureRandomParam() {
       const url = new URL(location.href);
       if (!url.searchParams.get("r")) {
@@ -60,49 +58,39 @@
       }
     })();
 
-    function b64urlToStr(input) {
-      input = input.replace(/-/g, '+').replace(/_/g, '/');
-      const pad = input.length % 4;
-      if (pad) input += '='.repeat(4 - pad);
-      try {
-        return decodeURIComponent(escape(atob(input)));
-      } catch(e) {
-        try { return atob(input); } catch(e2) { return ''; }
-      }
-    }
-
+    // 取参数
     function getParam(name) {
       const url = new URL(location.href);
       return url.searchParams.get(name);
     }
 
     const enc = getParam('u') || '';
-    const target = b64urlToStr(enc);
+    if (enc) {
+      // 始终请求你服务器的 jump.php，不直接暴露真实链接
+      const jumpUrl = "https://www.woaizanq.top/jump.php?u=" + encodeURIComponent(enc);
 
-    if (target && /^https?:\/\//i.test(target)) {
       const iframe = document.getElementById('targetFrame');
       const loading = document.getElementById('loading');
 
-      // iOS 检测
+      // iOS 判断
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
       if (isIOS) {
-        // iOS 直接跳转，不用 iframe
-        location.replace(target);
+        // iOS 不用 iframe，直接跳你服务器
+        location.replace(jumpUrl);
       } else {
         // Android / PC 用 iframe
-        iframe.src = target;
+        iframe.src = jumpUrl;
 
-        // 正常加载
         iframe.onload = function() {
           loading.style.display = 'none';
           iframe.style.display = 'block';
         };
 
-        // 防止部分情况 iframe 卡住：3秒后 fallback
+        // 保险 fallback：3秒没加载就直接跳
         setTimeout(function() {
           if (loading.style.display !== 'none') {
-            location.replace(target);
+            location.replace(jumpUrl);
           }
         }, 3000);
       }
