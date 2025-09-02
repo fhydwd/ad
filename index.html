@@ -1,102 +1,96 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Loading...</title>
-  <style>
-    html, body {
-      margin:0; padding:0; height:100%;
-      overflow:hidden; background:#000; color:#fff;
-    }
-    #loading {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      font-family: Arial, sans-serif;
-    }
-    .spinner {
-      margin: 0 auto 10px;
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top: 4px solid #fff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    iframe {
-      width:100%;
-      border:none;
-      display:none;
-      overflow:auto; /* 滚动 */
-      -webkit-overflow-scrolling: touch; /* iOS 弹性滚动 */
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Loading...</title>
+<style>
+html, body {
+  margin:0; padding:0; height:100%; overflow:hidden; background:#000; color:#fff;
+}
+#loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+.spinner {
+  margin: 0 auto 10px;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}
+iframe {
+  width:100%;
+  height:100vh;
+  border:none;
+  display:none;
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
+}
+</style>
 </head>
 <body>
-  <div id="loading">
-    <div class="spinner"></div>
-    <div>Loading...</div>
-  </div>
-  <iframe id="targetFrame" src=""></iframe>
+<div id="loading">
+  <div class="spinner"></div>
+  <div>Loading...</div>
+</div>
+<iframe id="targetFrame" src=""></iframe>
 
-  <script>
-    // 随机参数防缓存
-    function randomString(len = 8) {
-      return Math.random().toString(36).substr(2, len);
+<script>
+// 随机参数防缓存
+function randomString(len=8){ return Math.random().toString(36).substr(2,len); }
+(function ensureRandomParam(){
+  const url = new URL(location.href);
+  if(!url.searchParams.get("r")){
+    url.searchParams.set("r", randomString());
+    location.replace(url.toString());
+  }
+})();
+
+// 获取参数
+function getParam(name){
+  const url = new URL(location.href);
+  return url.searchParams.get(name);
+}
+
+const enc = getParam('u')||'';
+if(!enc){
+  document.body.innerHTML='<h1 style="color:white;text-align:center;margin-top:20%;">Invalid link</h1>';
+}else{
+  const jumpUrl = "https://www.woaizanq.top/jump.php?u="+encodeURIComponent(enc);
+  const iframe = document.getElementById('targetFrame');
+  const loading = document.getElementById('loading');
+
+  // iframe 高度自适应 iOS / 微信
+  function resizeIframe(){ iframe.style.height = window.innerHeight+'px'; }
+  window.addEventListener('resize', resizeIframe);
+  resizeIframe();
+
+  iframe.src = jumpUrl;
+
+  iframe.onload = function(){
+    loading.style.display='none';
+    iframe.style.display='block';
+  };
+
+  // fallback：3秒加载超时显示 iframe
+  setTimeout(function(){
+    if(loading.style.display!=='none'){
+      loading.style.display='none';
+      iframe.style.display='block';
     }
-    (function ensureRandomParam() {
-      const url = new URL(location.href);
-      if (!url.searchParams.get("r")) {
-        url.searchParams.set("r", randomString());
-        location.replace(url.toString());
-      }
-    })();
-
-    // 获取参数
-    function getParam(name) {
-      const url = new URL(location.href);
-      return url.searchParams.get(name);
-    }
-
-    const enc = getParam('u') || '';
-    if (!enc) {
-      document.body.innerHTML = '<h1 style="color:white;text-align:center;margin-top:20%;">Invalid link</h1>';
-    } else {
-      const jumpUrl = "https://www.woaizanq.top/jump.php?u=" + encodeURIComponent(enc);
-      const iframe = document.getElementById('targetFrame');
-      const loading = document.getElementById('loading');
-
-      // 设置 iframe 高度自适应 iOS 微信 + 支持滚动
-      function resizeIframe() {
-        iframe.style.height = window.innerHeight + 'px';
-      }
-      window.addEventListener('resize', resizeIframe);
-      resizeIframe();
-
-      // 设置 iframe src
-      iframe.src = jumpUrl;
-
-      // iframe 加载完成
-      iframe.onload = function() {
-        loading.style.display = 'none';
-        iframe.style.display = 'block';
-      };
-
-      // fallback：3秒加载超时仍显示 iframe
-      setTimeout(function() {
-        if (loading.style.display !== 'none') {
-          loading.style.display = 'none';
-          iframe.style.display = 'block';
-        }
-      }, 3000);
-    }
-  </script>
+  }, 3000);
+}
+</script>
 </body>
 </html>
