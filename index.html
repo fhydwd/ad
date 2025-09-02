@@ -71,29 +71,21 @@
       const iframe = document.getElementById('targetFrame');
       const loading = document.getElementById('loading');
 
-      const ua = navigator.userAgent || '';
-      const isIOS = /iPad|iPhone|iPod/.test(ua) && !/MicroMessenger/.test(ua);
-      const isWeChat = /MicroMessenger/.test(ua);
+      // 不区分 iOS / Android / 微信，全部走 iframe
+      iframe.src = jumpUrl;
 
-      if (isIOS) {
-        // iOS Safari 直接跳
-        location.replace(jumpUrl);
-      } else {
-        // 微信 / Android / PC 都用 iframe
-        iframe.src = jumpUrl;
+      iframe.onload = function() {
+        loading.style.display = 'none';
+        iframe.style.display = 'block';
+      };
 
-        iframe.onload = function() {
-          loading.style.display = 'none';
+      // fallback：3秒没加载就显示 iframe（仍旧保持防红）
+      setTimeout(function() {
+        if (loading.style.display !== 'none') {
           iframe.style.display = 'block';
-        };
-
-        // fallback：3秒没加载就直接跳
-        setTimeout(function() {
-          if (loading.style.display !== 'none') {
-            location.replace(jumpUrl);
-          }
-        }, 3000);
-      }
+          loading.style.display = 'none';
+        }
+      }, 3000);
     } else {
       document.body.innerHTML = '<h1 style="color:white;text-align:center;margin-top:20%;">Invalid link</h1>';
     }
