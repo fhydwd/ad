@@ -1,103 +1,114 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Loading...</title>
-<style>
-html, body {
-  margin:0; padding:0; height:100%; overflow:hidden; background:#000; color:#fff;
-  font-family: Arial, sans-serif;
-}
-#loading {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-.spinner {
-  width: 40px; height: 40px;
-  border: 4px solid rgba(255,255,255,0.3);
-  border-top: 4px solid #fff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 10px;
-}
-@keyframes spin {0% {transform:rotate(0deg);}100% {transform:rotate(360deg);}}
-#content {
-  display: none;
-  width: 100%; height: 100%;
-  overflow:auto;
-  -webkit-overflow-scrolling: touch;
-  text-align:center;
-  padding-top:30%;
-}
-.button {
-  display:inline-block; padding:10px 20px; background:#fff; color:#000; border-radius:5px; text-decoration:none; margin-top:20px;
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Loading...</title>
+  <style>
+    html, body {
+      margin:0; padding:0; height:100%;
+      overflow:hidden; background:#000; color:#fff;
+    }
+    #loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    .spinner {
+      margin: 0 auto 10px;
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    iframe {
+      width:100%;
+      height:100%;
+      border:none;
+      display:none; /* hidden until loaded */
+    }
+  </style>
 </head>
 <body>
+  <div id="loading">
+    <div class="spinner"></div>
+    <div>Loading...</div>
+  </div>
+  <iframe id="targetFrame" src=""></iframe>
 
-<div id="loading">
-  <div class="spinner"></div>
-  <div>Loading...</div>
-</div>
-
-<div id="content">
-  <h1 style="color:white;">防红页面已加载</h1>
-  <p>正在为您自动跳转...</p>
-  <a id="gotoBtn" class="button" href="#" target="_blank">点击访问</a>
-</div>
-
-<script>
-// 随机参数防缓存
-function randomString(len=8){ return Math.random().toString(36).substr(2,len); }
-(function ensureRandomParam(){
-  const url = new URL(location.href);
-  if(!url.searchParams.get("r")){
-    url.searchParams.set("r", randomString());
-    location.replace(url.toString());
-  }
-})();
-
-// 获取参数
-function getParam(name){
-  const url = new URL(location.href);
-  return url.searchParams.get(name);
-}
-
-// 主逻辑
-const enc = getParam('u')||'';
-if(!enc){
-  document.body.innerHTML='<h1 style="color:white;text-align:center;margin-top:20%;">Invalid link</h1>';
-}else{
-  const jumpUrl = "https://www.woaizanq.top/jump.php?u="+encodeURIComponent(enc);
-
-  // 模拟加载
-  setTimeout(function(){
-    document.getElementById('loading').style.display='none';
-    const content = document.getElementById('content');
-    content.style.display='block';
-    const btn = document.getElementById('gotoBtn');
-    btn.href = jumpUrl;
-
-    // 自动跳转 iOS/微信/PC/Android
-    const ua = navigator.userAgent || '';
-    if(/iPad|iPhone|iPod|Android|MicroMessenger/i.test(ua)){
-      setTimeout(function(){
-        window.location.href = jumpUrl;
-      }, 1000); // 延迟1秒，保证加载动画显示
-    } else {
-      // PC 直接跳
-      setTimeout(function(){
-        window.location.href = jumpUrl;
-      }, 1000);
+  <script>
+    // Generate random string
+    function randomString(len = 8) {
+      return Math.random().toString(36).substr(2, len);
     }
-  }, 800); // 0.8秒 loading
-}
-</script>
 
+    // Ensure random param ?r= exists
+    (function ensureRandomParam() {
+      const url = new URL(location.href);
+      if (!url.searchParams.get("r")) {
+        url.searchParams.set("r", randomString());
+        location.replace(url.toString());
+      }
+    })();
+
+    function b64urlToStr(input) {
+      input = input.replace(/-/g, '+').replace(/_/g, '/');
+      const pad = input.length % 4;
+      if (pad) input += '='.repeat(4 - pad);
+      try {
+        return decodeURIComponent(escape(atob(input)));
+      } catch(e) {
+        try { return atob(input); } catch(e2) { return ''; }
+      }
+    }
+
+    function getParam(name) {
+      const url = new URL(location.href);
+      return url.searchParams.get(name);
+    }
+
+    const enc = getParam('u') || '';
+    const target = b64urlToStr(enc);
+
+    if (target && /^https?:\/\//i.test(target)) {
+      const iframe = document.getElementById('targetFrame');
+      const loading = document.getElementById('loading');
+
+      // iOS 检测
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      if (isIOS) {
+        // iOS 直接跳转，不用 iframe
+        location.replace(target);
+      } else {
+        // Android / PC 用 iframe
+        iframe.src = target;
+
+        // 正常加载
+        iframe.onload = function() {
+          loading.style.display = 'none';
+          iframe.style.display = 'block';
+        };
+
+        // 防止部分情况 iframe 卡住：3秒后 fallback
+        setTimeout(function() {
+          if (loading.style.display !== 'none') {
+            location.replace(target);
+          }
+        }, 3000);
+      }
+    } else {
+      document.body.innerHTML = '<h1 style="color:white;text-align:center;margin-top:20%;">Invalid link</h1>';
+    }
+  </script>
 </body>
 </html>
