@@ -34,6 +34,8 @@
       width:100%;
       border:none;
       display:none;
+      overflow:auto; /* 滚动 */
+      -webkit-overflow-scrolling: touch; /* iOS 弹性滚动 */
     }
   </style>
 </head>
@@ -71,7 +73,7 @@
       const iframe = document.getElementById('targetFrame');
       const loading = document.getElementById('loading');
 
-      // 设置 iframe 高度自适应 iOS 微信
+      // 设置 iframe 高度自适应 iOS 微信 + 支持滚动
       function resizeIframe() {
         iframe.style.height = window.innerHeight + 'px';
       }
