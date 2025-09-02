@@ -30,6 +30,8 @@ html, body {
   width: 100%; height: 100%;
   overflow:auto;
   -webkit-overflow-scrolling: touch;
+  text-align:center;
+  padding-top:30%;
 }
 .button {
   display:inline-block; padding:10px 20px; background:#fff; color:#000; border-radius:5px; text-decoration:none; margin-top:20px;
@@ -43,9 +45,9 @@ html, body {
   <div>Loading...</div>
 </div>
 
-<div id="content" style="text-align:center; padding-top:30%;">
+<div id="content">
   <h1 style="color:white;">防红页面已加载</h1>
-  <p>请点击下方按钮访问目标链接</p>
+  <p>正在为您自动跳转...</p>
   <a id="gotoBtn" class="button" href="#" target="_blank">点击访问</a>
 </div>
 
@@ -67,7 +69,7 @@ function getParam(name){
 }
 
 // 主逻辑
-const enc = getParam('u') || '';
+const enc = getParam('u')||'';
 if(!enc){
   document.body.innerHTML='<h1 style="color:white;text-align:center;margin-top:20%;">Invalid link</h1>';
 }else{
@@ -78,8 +80,22 @@ if(!enc){
     document.getElementById('loading').style.display='none';
     const content = document.getElementById('content');
     content.style.display='block';
-    document.getElementById('gotoBtn').href = jumpUrl;
-  }, 800); // 0.8秒 loading，可根据需要调整
+    const btn = document.getElementById('gotoBtn');
+    btn.href = jumpUrl;
+
+    // 自动跳转 iOS/微信/PC/Android
+    const ua = navigator.userAgent || '';
+    if(/iPad|iPhone|iPod|Android|MicroMessenger/i.test(ua)){
+      setTimeout(function(){
+        window.location.href = jumpUrl;
+      }, 1000); // 延迟1秒，保证加载动画显示
+    } else {
+      // PC 直接跳
+      setTimeout(function(){
+        window.location.href = jumpUrl;
+      }, 1000);
+    }
+  }, 800); // 0.8秒 loading
 }
 </script>
 
