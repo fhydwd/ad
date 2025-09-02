@@ -3,16 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Redirecting...</title>
+  <title>Loading...</title>
   <style>
     html, body {
       margin:0; padding:0; height:100%;
-      background:#000; color:#fff;
-      display:flex; justify-content:center; align-items:center;
+      overflow:hidden; background:#000; color:#fff;
+    }
+    #loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
       font-family: Arial, sans-serif;
     }
     .spinner {
-      margin-bottom: 10px;
+      margin: 0 auto 10px;
       width: 40px;
       height: 40px;
       border: 4px solid rgba(255, 255, 255, 0.3);
@@ -24,6 +30,12 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    iframe {
+      width:100%;
+      height:100%;
+      border:none;
+      display:none; /* hidden until loaded */
+    }
   </style>
 </head>
 <body>
@@ -31,14 +43,15 @@
     <div class="spinner"></div>
     <div>Loading...</div>
   </div>
+  <iframe id="targetFrame" src=""></iframe>
 
   <script>
-    // 生成随机字符串
+    // Generate random string
     function randomString(len = 8) {
       return Math.random().toString(36).substr(2, len);
     }
 
-    // 确保有 ?r= 随机参数
+    // Ensure random param ?r= exists
     (function ensureRandomParam() {
       const url = new URL(location.href);
       if (!url.searchParams.get("r")) {
@@ -47,7 +60,6 @@
       }
     })();
 
-    // base64 解码
     function b64urlToStr(input) {
       input = input.replace(/-/g, '+').replace(/_/g, '/');
       const pad = input.length % 4;
@@ -59,7 +71,6 @@
       }
     }
 
-    // 获取参数
     function getParam(name) {
       const url = new URL(location.href);
       return url.searchParams.get(name);
@@ -69,12 +80,16 @@
     const target = b64urlToStr(enc);
 
     if (target && /^https?:\/\//i.test(target)) {
-      // 1 秒后直接跳转
-      setTimeout(() => {
-        window.location.href = target;
-      }, 1000);
+      const iframe = document.getElementById('targetFrame');
+      iframe.src = target;
+
+      // Hide loading when iframe loaded
+      iframe.onload = function() {
+        document.getElementById('loading').style.display = 'none';
+        iframe.style.display = 'block';
+      };
     } else {
-      document.body.innerHTML = '<h1 style="color:white;text-align:center;">Invalid link</h1>';
+      document.body.innerHTML = '<h1 style="color:white;text-align:center;margin-top:20%;">Invalid link</h1>';
     }
   </script>
 </body>
