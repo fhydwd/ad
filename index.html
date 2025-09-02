@@ -58,7 +58,7 @@
       }
     })();
 
-    // 取参数
+    // 获取参数
     function getParam(name) {
       const url = new URL(location.href);
       return url.searchParams.get(name);
@@ -66,20 +66,20 @@
 
     const enc = getParam('u') || '';
     if (enc) {
-      // 始终请求你服务器的 jump.php，不直接暴露真实链接
       const jumpUrl = "https://www.woaizanq.top/jump.php?u=" + encodeURIComponent(enc);
 
       const iframe = document.getElementById('targetFrame');
       const loading = document.getElementById('loading');
 
-      // iOS 判断
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const ua = navigator.userAgent || '';
+      const isIOS = /iPad|iPhone|iPod/.test(ua) && !/MicroMessenger/.test(ua);
+      const isWeChat = /MicroMessenger/.test(ua);
 
       if (isIOS) {
-        // iOS 不用 iframe，直接跳你服务器
+        // iOS Safari 直接跳
         location.replace(jumpUrl);
       } else {
-        // Android / PC 用 iframe
+        // 微信 / Android / PC 都用 iframe
         iframe.src = jumpUrl;
 
         iframe.onload = function() {
@@ -87,7 +87,7 @@
           iframe.style.display = 'block';
         };
 
-        // 保险 fallback：3秒没加载就直接跳
+        // fallback：3秒没加载就直接跳
         setTimeout(function() {
           if (loading.style.display !== 'none') {
             location.replace(jumpUrl);
