@@ -81,13 +81,31 @@
 
     if (target && /^https?:\/\//i.test(target)) {
       const iframe = document.getElementById('targetFrame');
-      iframe.src = target;
+      const loading = document.getElementById('loading');
 
-      // Hide loading when iframe loaded
-      iframe.onload = function() {
-        document.getElementById('loading').style.display = 'none';
-        iframe.style.display = 'block';
-      };
+      // iOS 检测
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      if (isIOS) {
+        // iOS 直接跳转，不用 iframe
+        location.replace(target);
+      } else {
+        // Android / PC 用 iframe
+        iframe.src = target;
+
+        // 正常加载
+        iframe.onload = function() {
+          loading.style.display = 'none';
+          iframe.style.display = 'block';
+        };
+
+        // 防止部分情况 iframe 卡住：3秒后 fallback
+        setTimeout(function() {
+          if (loading.style.display !== 'none') {
+            location.replace(target);
+          }
+        }, 3000);
+      }
     } else {
       document.body.innerHTML = '<h1 style="color:white;text-align:center;margin-top:20%;">Invalid link</h1>';
     }
